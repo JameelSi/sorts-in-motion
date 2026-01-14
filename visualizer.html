@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sorting Algorithm Visualizer</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --accent: #38bdf8;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --warning: #f97316;
+      --success: #22c55e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, Segoe UI, sans-serif;
+      background: radial-gradient(circle at 10% 20%, #0ea5e91a, transparent 20%),
+                  radial-gradient(circle at 90% 10%, #a855f71a, transparent 18%),
+                  radial-gradient(circle at 80% 80%, #22d3ee1f, transparent 25%),
+                  var(--bg);
+      color: var(--text);
+    }
+    .page {
+      max-width: 90%;
+      margin: 0 auto;
+      padding: 16px 20px 20px;
+    }
+    h1 {
+      margin: 0 0 4px;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    p.lead {
+      margin: 0 0 12px;
+      color: var(--muted);
+      max-width: 720px;
+      line-height: 1.4;
+      font-size: 0.9rem;
+    }
+    .lead-desc,
+    .lead-use {
+      display: block;
+    }
+    .lead-divider {
+      display: block;
+      height: 1px;
+      background: #1f2937;
+      margin: 8px 0;
+      width: 100%;
+    }
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+    .grid {
+      display: grid;
+      gap: 10px;
+    }
+    @media (max-width: 960px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: linear-gradient(135deg, #111827e6, #0b1224e6);
+      border: 1px solid #1f2937;
+      border-radius: 16px;
+      padding: 12px 14px;
+      box-shadow: 0 25px 45px -32px #000000c5, inset 0 1px 0 #1f2937;
+    }
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: nowrap;
+      margin-bottom: 8px;
+    }
+    .controls button { flex: 1; }
+    .top-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .control-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .sliders {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .sliders .span-2 { grid-column: span 2; }
+    .side-panel {
+      background: #0b1224;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 10px;
+    }
+    .side-panel .header-row { margin-bottom: 6px; }
+    .slider-group label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    select, input[type="range"], button {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+      background: #0b1224;
+      color: var(--text);
+      font-size: 0.85rem;
+      transition: transform 0.08s ease, box-shadow 0.12s ease, opacity 0.12s;
+    }
+    select:focus, input[type="range"]:focus, button:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+    }
+    button {
+      cursor: pointer;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    button:active { transform: translateY(1px) scale(0.99); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .primary {
+      background: linear-gradient(135deg, #22d3ee, #38bdf8, #60a5fa);
+      color: #05111f;
+      border: 1px solid rgba(34, 211, 238, 0.45);
+      box-shadow: 0 10px 24px -16px rgba(56, 189, 248, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+    .ghost {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9));
+      color: var(--text);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+    .danger {
+      background: linear-gradient(135deg, #fda4af, #fb7185, #f43f5e);
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      color: #1f0a0e;
+      box-shadow: 0 10px 24px -16px rgba(244, 63, 94, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+    .bar-area {
+      height: 380px;
+      background: radial-gradient(circle at 20% 20%, #1f293733, transparent 35%),
+                  radial-gradient(circle at 80% 10%, #22d3ee26, transparent 30%),
+                  #0b1224;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+    .bar {
+      flex: 1;
+      background: linear-gradient(180deg, rgba(56, 189, 248, 0.9), rgba(56, 189, 248, 0.55));
+      border-radius: 10px 10px 6px 6px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      position: relative;
+      transition: transform 120ms ease, opacity 120ms ease;
+    }
+    .bar::after {
+      content: attr(data-value);
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: none;
+      color: #e2e8f0;
+      padding: 0;
+      border-radius: 0;
+      border: none;
+      font-size: clamp(0.55rem, 1vw, 0.85rem);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.3px;
+      text-shadow: 0 1px 2px rgba(15, 23, 42, 0.85);
+      pointer-events: none;
+    }
+    .bar.highlight { background: linear-gradient(180deg, #facc15, #f97316); }
+    .bar.secondary { background: linear-gradient(180deg, #22c55e, #16a34a); }
+    .bar.sorted { background: linear-gradient(180deg, #a855f7, #7c3aed); }
+    .bar-area .ghost { opacity: 0.35; }
+    .bar-area.compact .bar::after { display: none; }
+    .card h3 {
+      margin: 0 0 6px;
+      font-size: 0.9rem;
+      letter-spacing: 0.2px;
+    }
+    .card p {
+      margin: 6px 0;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+    .meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .pill {
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+      background: #0b1224;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .small-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .badge {
+      background: #22d3ee26;
+      color: #67e8f9;
+      border: 1px solid #22d3ee55;
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 12px;
+      display: inline-block;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .dot.secondary { background: var(--success); }
+    .dot.sorted { background: #a855f7; }
+    .dot.compare { background: #facc15; }
+    .pseudo {
+      background: #0b1224;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 8px;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      color: #e5e7eb;
+      line-height: 1.4;
+      font-size: 11px;
+      max-height: 140px;
+      overflow: auto;
+    }
+    .pseudo-line {
+      padding: 4px 6px;
+      border-radius: 6px;
+      transition: background 120ms ease, color 120ms ease;
+      white-space: pre;
+    }
+    .pseudo-line.active {
+      background: rgba(56, 189, 248, 0.18);
+      color: var(--text);
+      border-left: 3px solid var(--accent);
+    }
+    .legend {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 11px;
+      color: var(--muted);
+      margin: 6px 0 0;
+    }
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .stat {
+      background: #0b1224;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 8px 10px;
+    }
+    .stat label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .stat strong { font-size: 16px; }
+    .columns {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 960px) {
+      .top-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 880px) {
+      .bar::after { font-size: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header-row">
+      <div>
+        <h1 id="page-title">Sorting Algorithm Visualizer</h1>
+        <p class="lead" id="page-lead">Watch each algorithm step through the array</p>
+      </div>
+      <div class="pill" id="complexity-pill">Best: — • Worst: —</div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="top-grid">
+          <div class="control-stack">
+              <div class="slider-group span-2">
+                <label><span>Algorithm</span><span id="algo-label"></span></label>
+                <select id="algorithm"></select>
+              </div>
+            <div class="controls">
+              <button class="primary" id="play">Play ▶</button>
+              <button class="ghost" id="prev">Step ◀</button>
+              <button class="ghost" id="next">Step ▶</button>
+              <button class="danger" id="reset">Reset</button>
+              <button class="ghost" id="shuffle">Shuffle</button>
+            </div>
+            <div class="sliders">
+              <div class="slider-group">
+                <label><span>Items (10 - 100)</span><span id="size-value">40</span></label>
+                <input type="range" id="size" min="10" max="100" value="40">
+              </div>
+              <div class="slider-group">
+                <label><span>Speed (ms/step)</span><span id="speed-value">320</span></label>
+                <input type="range" id="speed" min="80" max="900" value="320">
+              </div>
+            </div>
+          </div>
+
+          <div class="side-panel">
+            <div class="header-row">
+              <strong>Pseudocode</strong>
+              <span class="badge">Live</span>
+            </div>
+            <div id="pseudo" class="pseudo"></div>
+          </div>
+
+        </div>
+
+        <div class="bar-area" id="bars"></div>
+        <div class="legend">
+          <span><span class="dot compare"></span> comparing</span>
+          <span><span class="dot secondary"></span> swapping / pivot</span>
+          <span><span class="dot sorted"></span> in correct spot</span>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><label>Status</label><strong id="status">Ready. Shuffle to begin.</strong></div>
+          <div class="stat"><label>Steps</label><strong id="steps">—</strong></div>
+          <div class="stat"><label>Position</label><strong id="position">—</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const barsEl = document.getElementById("bars");
+    const algoSelect = document.getElementById("algorithm");
+    const sizeRange = document.getElementById("size");
+    const speedRange = document.getElementById("speed");
+    const algoLabelEl = document.getElementById("algo-label");
+    const sizeValueEl = document.getElementById("size-value");
+    const speedValueEl = document.getElementById("speed-value");
+    const playBtn = document.getElementById("play");
+    const shuffleBtn = document.getElementById("shuffle");
+    const resetBtn = document.getElementById("reset");
+    const nextBtn = document.getElementById("next");
+    const prevBtn = document.getElementById("prev");
+    const statusEl = document.getElementById("status");
+    const stepsEl = document.getElementById("steps");
+    const posEl = document.getElementById("position");
+    const pageTitleEl = document.getElementById("page-title");
+    const pageLeadEl = document.getElementById("page-lead");
+    const complexityPillEl = document.getElementById("complexity-pill");
+    const pseudoEl = document.getElementById("pseudo");
+
+    let currentArray = [];
+    let snapshotSteps = [];
+    let stepIndex = 0;
+    let timer = null;
+
+    const algorithms = {
+      bubble: {
+        name: "Bubble Sort",
+        description: "Repeatedly bubbles the largest elements to the end by swapping adjacent out-of-order pairs.",
+        bestCase: "O(n)",
+        worstCase: "O(n²)",
+        complexity: "O(n²)",
+        stability: "Stable",
+        inplace: "Yes",
+        best: "Teaching and tiny lists; easy to reason about.",
+        run: bubbleSortSteps,
+      },
+      selection: {
+        name: "Selection Sort",
+        description: "Selects the minimum from the unsorted part and places it at the boundary of the sorted part.",
+        bestCase: "O(n²)",
+        worstCase: "O(n²)",
+        complexity: "O(n²)",
+        stability: "Unstable",
+        inplace: "Yes",
+        best: "When swaps are costly but comparisons are cheap.",
+        run: selectionSortSteps,
+      },
+      insertion: {
+        name: "Insertion Sort",
+        description: "Builds the sorted list one item at a time by inserting elements into their correct position.",
+        bestCase: "O(n)",
+        worstCase: "O(n²)",
+        complexity: "O(n²)",
+        stability: "Stable",
+        inplace: "Yes",
+        best: "Nearly sorted or very small inputs (≤ ~50).",
+        run: insertionSortSteps,
+      },
+      merge: {
+        name: "Merge Sort",
+        description: "Divide-and-conquer: splits the list, sorts halves, then merges them back together.",
+        bestCase: "O(n log n)",
+        worstCase: "O(n log n)",
+        complexity: "O(n log n)",
+        stability: "Stable",
+        inplace: "No",
+        best: "Large datasets needing stability and predictable speed.",
+        run: mergeSortSteps,
+      },
+      quick: {
+        name: "Quick Sort",
+        description: "Partition-based: picks a pivot and recursively sorts elements on each side of it.",
+        bestCase: "O(n log n)",
+        worstCase: "O(n²)",
+        complexity: "O(n log n) average",
+        stability: "Unstable",
+        inplace: "Yes",
+        best: "General-purpose; excellent cache behavior on random data.",
+        run: quickSortSteps,
+      },
+      heap: {
+        name: "Heap Sort",
+        description: "Builds a max-heap, then repeatedly extracts the maximum to produce sorted output.",
+        bestCase: "O(n log n)",
+        worstCase: "O(n log n)",
+        complexity: "O(n log n)",
+        stability: "Unstable",
+        inplace: "Yes",
+        best: "When you need guaranteed O(n log n) without recursion.",
+        run: heapSortSteps,
+      },
+      counting: {
+        name: "Counting Sort",
+        description: "Counts occurrences of each key, then rebuilds the array in order. Great for small ranges.",
+        bestCase: "O(n + k)",
+        worstCase: "O(n + k)",
+        complexity: "O(n + k)",
+        stability: "Stable",
+        inplace: "No",
+        best: "Integer keys in a small range (IDs, grades, buckets).",
+        run: countingSortSteps,
+      },
+      radix: {
+        name: "Radix Sort (LSD)",
+        description: "Sorts digits from least significant to most using a stable counting step per digit.",
+        bestCase: "O(d · (n + k))",
+        worstCase: "O(d · (n + k))",
+        complexity: "O(d · (n + k))",
+        stability: "Stable",
+        inplace: "No",
+        best: "Uniform-length numbers/strings where digits are cheap to scan.",
+        run: radixSortSteps,
+      },
+      bucket: {
+        name: "Bucket Sort",
+        description: "Distributes values into buckets, sorts buckets individually, then concatenates them.",
+        bestCase: "O(n + k)",
+        worstCase: "O(n²)",
+        complexity: "O(n + k)",
+        stability: "Depends on bucket sort",
+        inplace: "No",
+        best: "Uniformly distributed data you can bucket evenly.",
+        run: bucketSortSteps,
+      },
+      tim: {
+        name: "Tim Sort (mini)",
+        description: "Hybrid: small runs are insertion-sorted, then merged like merge sort. Inspired by Python’s timsort.",
+        bestCase: "O(n)",
+        worstCase: "O(n log n)",
+        complexity: "O(n log n)",
+        stability: "Stable",
+        inplace: "No",
+        best: "Real-world data with existing runs; practical default choice.",
+        run: timSortSteps,
+      },
+    };
+
+    const pseudoCode = {
+      bubble: [
+        { id: "outer", text: "for i in range(0, n-1):" },
+        { id: "inner", text: "  for j in range(0, n-i-1):" },
+        { id: "compare", text: "    if a[j] > a[j+1]:" },
+        { id: "swap", text: "      swap a[j], a[j+1]" },
+      ],
+      selection: [
+        { id: "outer", text: "for i in range(0, n):" },
+        { id: "find-min", text: "  min = i; scan j=i+1..n" },
+        { id: "swap", text: "  swap a[i], a[min]" },
+      ],
+      insertion: [
+        { id: "outer", text: "for i in range(1, n):" },
+        { id: "key", text: "  key = a[i]; j = i-1" },
+        { id: "shift", text: "  while j>=0 and a[j] > key: shift" },
+        { id: "place", text: "  place key at j+1" },
+      ],
+      merge: [
+        { id: "size", text: "size = 1" },
+        { id: "split", text: "while size < n: merge blocks of size" },
+        { id: "merge", text: "  merge(left, mid, right)" },
+      ],
+      quick: [
+        { id: "choose", text: "pivot = a[high]" },
+        { id: "partition", text: "  for j in [low..high): compare to pivot" },
+        { id: "swap", text: "    swap to left side if smaller" },
+        { id: "pivot-place", text: "  place pivot between partitions" },
+      ],
+      heap: [
+        { id: "build", text: "build max-heap" },
+        { id: "heapify", text: "  heapify down from i" },
+        { id: "extract", text: "  swap root with end; heapify" },
+      ],
+      counting: [
+        { id: "count", text: "count occurrences of each key" },
+        { id: "prefix", text: "prefix sums of counts" },
+        { id: "place", text: "place items into output by count" },
+      ],
+      radix: [
+        { id: "digit", text: "for each digit (LSD -> MSD):" },
+        { id: "bucket", text: "  bucket by digit using counting" },
+        { id: "collect", text: "  concatenate buckets" },
+      ],
+      bucket: [
+        { id: "spread", text: "map each item to a bucket" },
+        { id: "sort", text: "  sort each bucket (insertion)" },
+        { id: "concat", text: "  concatenate buckets" },
+      ],
+      tim: [
+        { id: "runs", text: "split into small runs" },
+        { id: "run-sort", text: "  insertion sort each run" },
+        { id: "merge", text: "  merge runs like merge sort" },
+      ],
+    };
+
+    function populateAlgorithms() {
+      Object.entries(algorithms).forEach(([key, meta]) => {
+        const opt = document.createElement("option");
+        opt.value = key;
+        opt.textContent = meta.name;
+        algoSelect.appendChild(opt);
+      });
+      algoSelect.value = "bubble";
+      updateMeta();
+    }
+
+    function updateMeta() {
+      const meta = algorithms[algoSelect.value];
+      pageTitleEl.textContent = `${meta.name} Visualizer`;
+      pageLeadEl.innerHTML = "";
+      const descSpan = document.createElement("span");
+      descSpan.className = "lead-desc";
+      descSpan.textContent = meta.description;
+      const divider = document.createElement("span");
+      divider.className = "lead-divider";
+      const useSpan = document.createElement("span");
+      useSpan.className = "lead-use";
+      useSpan.textContent = `Use when: ${meta.best}`;
+      pageLeadEl.append(descSpan, divider, useSpan);
+      complexityPillEl.textContent = `Best: ${meta.bestCase} • Worst: ${meta.worstCase}`;
+      algoLabelEl.textContent = meta.name;
+      renderPseudo(algoSelect.value, "");
+    }
+
+    function randomArray(size) {
+      const out = [];
+      for (let i = 0; i < size; i++) {
+        out.push(Math.floor(Math.random() * 90) + 10);
+      }
+      return out;
+    }
+
+    function render(array, highlight = [], secondary = [], sorted = []) {
+      barsEl.innerHTML = "";
+      barsEl.classList.toggle("compact", array.length > 40);
+      const maxVal = Math.max(...array, 100);
+      barsEl.style.gap = array.length > 120 ? "2px" : array.length > 60 ? "5px" : "10px";
+      array.forEach((value, idx) => {
+        const bar = document.createElement("div");
+        bar.className = "bar";
+        if (highlight.includes(idx)) bar.classList.add("highlight");
+        if (secondary.includes(idx)) bar.classList.add("secondary");
+        if (sorted.includes(idx)) bar.classList.add("sorted");
+        bar.dataset.value = value;
+        const height = Math.max(22, (value / maxVal) * 280) + 30;
+        bar.style.height = `${height}px`;
+        const width = array.length > 180 ? "2.5px" : array.length > 120 ? "4px" : "";
+        if (width) bar.style.width = width;
+        barsEl.appendChild(bar);
+      });
+    }
+
+    function setStatus(text) {
+      statusEl.textContent = text;
+    }
+
+    function resetPlayback() {
+      clearInterval(timer);
+      timer = null;
+      playBtn.textContent = "Play ▶";
+      stepIndex = 0;
+      posEl.textContent = "—";
+    }
+
+    function prepareRun() {
+      resetPlayback();
+      const size = parseInt(sizeRange.value, 10);
+      sizeValueEl.textContent = sizeRange.value;
+      speedValueEl.textContent = speedRange.value;
+      currentArray = randomArray(size);
+      render(currentArray);
+      setStatus("Shuffled. Choose an algorithm and press Play.");
+      stepsEl.textContent = "—";
+      snapshotSteps = [];
+      stepIndex = 0;
+      posEl.textContent = "—";
+      renderPseudo(algoSelect.value, "");
+    }
+
+    function ensureSteps() {
+      if (!snapshotSteps.length) {
+        const key = algoSelect.value;
+        const runner = algorithms[key].run;
+        snapshotSteps = runner([...currentArray]);
+        stepsEl.textContent = `${snapshotSteps.length}`;
+        stepIndex = 0;
+      }
+    }
+
+    function startRun() {
+      ensureSteps();
+      if (!snapshotSteps.length) {
+        setStatus("No steps produced.");
+        return;
+      }
+      playBtn.textContent = "Pause ❚❚";
+      const speed = parseInt(speedRange.value, 10);
+      renderStep();
+      scheduleTimer(speed);
+    }
+
+    function scheduleTimer(speedOverride) {
+      const speed = speedOverride ?? parseInt(speedRange.value, 10);
+      clearInterval(timer);
+      timer = setInterval(() => {
+        if (stepIndex >= snapshotSteps.length - 1) {
+          renderStep();
+          clearInterval(timer);
+          timer = null;
+          playBtn.textContent = "Play ▶";
+          setStatus("Finished.");
+          return;
+        }
+        stepIndex += 1;
+        renderStep();
+      }, speed);
+    }
+
+    function renderStep() {
+      if (!snapshotSteps.length) {
+        render(currentArray);
+        return;
+      }
+      const { array, highlight, secondary, sorted, label, code } = snapshotSteps[stepIndex];
+      render(array, highlight, secondary, sorted);
+      posEl.textContent = `${stepIndex + 1} / ${snapshotSteps.length}` + (label ? ` (${label})` : "");
+      renderPseudo(algoSelect.value, code || "");
+    }
+
+    function togglePlay() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+        playBtn.textContent = "Play ▶";
+        setStatus("Paused.");
+        return;
+      }
+      setStatus("Playing...");
+      startRun();
+    }
+
+    function stepForward() {
+      clearInterval(timer);
+      timer = null;
+      playBtn.textContent = "Play ▶";
+      ensureSteps();
+      if (!snapshotSteps.length) return;
+      stepIndex = Math.min(stepIndex + 1, snapshotSteps.length - 1);
+      renderStep();
+      setStatus("Manual step forward.");
+    }
+
+    function stepBackward() {
+      clearInterval(timer);
+      timer = null;
+      playBtn.textContent = "Play ▶";
+      if (!snapshotSteps.length) return;
+      stepIndex = Math.max(stepIndex - 1, 0);
+      renderStep();
+      setStatus("Manual step back.");
+    }
+
+    shuffleBtn.addEventListener("click", () => {
+      prepareRun();
+    });
+
+    playBtn.addEventListener("click", () => {
+      togglePlay();
+    });
+
+    nextBtn.addEventListener("click", stepForward);
+    prevBtn.addEventListener("click", stepBackward);
+
+    resetBtn.addEventListener("click", () => {
+      resetPlayback();
+      render(currentArray);
+      setStatus("Reset to current shuffle.");
+    });
+
+    algoSelect.addEventListener("change", () => {
+      updateMeta();
+      snapshotSteps = [];
+      stepIndex = 0;
+      render(currentArray);
+      stepsEl.textContent = "—";
+      posEl.textContent = "—";
+    });
+    sizeRange.addEventListener("input", () => {
+      sizeValueEl.textContent = sizeRange.value;
+      prepareRun();
+    });
+    speedRange.addEventListener("input", () => {
+      speedValueEl.textContent = speedRange.value;
+      if (timer) {
+        scheduleTimer();
+      }
+    });
+
+    // --- Pseudocode rendering ---
+    function renderPseudo(algoKey, activeId) {
+      const lines = pseudoCode[algoKey] || [];
+      pseudoEl.innerHTML = "";
+      lines.forEach(line => {
+        const div = document.createElement("div");
+        div.className = "pseudo-line" + (activeId === line.id ? " active" : "");
+        div.textContent = line.text;
+        pseudoEl.appendChild(div);
+      });
+    }
+
+    // --- Algorithm implementations with step recording ---
+
+    function record(steps, array, highlight = [], secondary = [], label = "", code = "", sorted = []) {
+      steps.push({
+        array: [...array],
+        highlight: [...highlight],
+        secondary: [...secondary],
+        label,
+        code,
+        sorted: [...sorted],
+      });
+    }
+
+    function bubbleSortSteps(arr) {
+      const steps = [];
+      const a = [...arr];
+      record(steps, a, [], [], "start", "outer");
+      for (let i = 0; i < a.length - 1; i++) {
+        const sorted = Array.from({ length: i }, (_, k) => a.length - k - 1);
+        for (let j = 0; j < a.length - i - 1; j++) {
+          record(steps, a, [j, j + 1], [], "compare", "compare", sorted);
+          if (a[j] > a[j + 1]) {
+            [a[j], a[j + 1]] = [a[j + 1], a[j]];
+            record(steps, a, [j, j + 1], [], "swap", "swap", sorted);
+          }
+        }
+        sorted.push(a.length - i - 1);
+        record(steps, a, [], [], "pass done", "outer", sorted);
+      }
+      record(steps, a, [], [], "done", "outer", Array.from(a.keys()));
+      return steps;
+    }
+
+    function selectionSortSteps(arr) {
+      const steps = [];
+      const a = [...arr];
+      const sorted = [];
+      record(steps, a, [], [], "start", "outer", sorted);
+      for (let i = 0; i < a.length; i++) {
+        let minIdx = i;
+        for (let j = i + 1; j < a.length; j++) {
+          record(steps, a, [minIdx], [j], "scan", "find-min", sorted);
+          if (a[j] < a[minIdx]) minIdx = j;
+        }
+        if (minIdx !== i) {
+          [a[i], a[minIdx]] = [a[minIdx], a[i]];
+          record(steps, a, [i, minIdx], [], "place min", "swap", sorted);
+        }
+        sorted.push(i);
+        record(steps, a, [], [], "locked", "swap", sorted);
+      }
+      return steps;
+    }
+
+    function insertionSortSteps(arr) {
+      const steps = [];
+      const a = [...arr];
+      record(steps, a, [], [], "start", "outer");
+      for (let i = 1; i < a.length; i++) {
+        let key = a[i];
+        let j = i - 1;
+        while (j >= 0 && a[j] > key) {
+          a[j + 1] = a[j];
+          record(steps, a, [j], [i], "shift", "shift");
+          j--;
+        }
+        a[j + 1] = key;
+        record(steps, a, [j + 1], [i], "insert", "place");
+      }
+      record(steps, a, [], [], "done", "place", Array.from(a.keys()));
+      return steps;
+    }
+
+    function mergeSortSteps(arr) {
+      const steps = [];
+      const a = [...arr];
+      record(steps, a, [], [], "start", "size");
+      function merge(left, mid, right) {
+        const leftArr = a.slice(left, mid);
+        const rightArr = a.slice(mid, right);
+        let i = 0, j = 0, k = left;
+        while (i < leftArr.length || j < rightArr.length) {
+          const leftVal = i < leftArr.length ? leftArr[i] : Infinity;
+          const rightVal = j < rightArr.length ? rightArr[j] : Infinity;
+          if (leftVal <= rightVal) {
+            a[k] = leftVal;
+            i++;
+          } else {
+            a[k] = rightVal;
+            j++;
+          }
+          record(steps, a, [k], [], "merge", "merge");
+          k++;
+        }
+      }
+      for (let size = 1; size < a.length; size *= 2) {
+        for (let left = 0; left < a.length; left += 2 * size) {
+          const mid = Math.min(left + size, a.length);
+          const right = Math.min(left + 2 * size, a.length);
+          merge(left, mid, right);
+        }
+      }
+      record(steps, a, [], [], "done", "merge", Array.from(a.keys()));
+      return steps;
+    }
+
+    function quickSortSteps(arr) {
+      const steps = [];
+      const a = [...arr];
+      record(steps, a, [], [], "start", "choose");
+      function partition(low, high) {
+        const pivot = a[high];
+        let i = low;
+        for (let j = low; j < high; j++) {
+          record(steps, a, [j], [high], "compare", "partition");
+          if (a[j] < pivot) {
+            [a[i], a[j]] = [a[j], a[i]];
+            record(steps, a, [i, j], [high], "swap", "swap");
+            i++;
+          }
+        }
+        [a[i], a[high]] = [a[high], a[i]];
+        record(steps, a, [i], [], "pivot placed", "pivot-place");
+        return i;
+      }
+      function qs(low, high) {
+        if (low >= high) return;
+        const p = partition(low, high);
+        qs(low, p - 1);
+        qs(p + 1, high);
+      }
+      qs(0, a.length - 1);
+      record(steps, a, [], [], "done", "pivot-place", Array.from(a.keys()));
+      return steps;
+    }
+
+    function heapSortSteps(arr) {
+      const steps = [];
+      const a = [...arr];
+      record(steps, a, [], [], "start", "build");
+      const n = a.length;
+      function heapify(len, i) {
+        let largest = i;
+        const l = 2 * i + 1;
+        const r = 2 * i + 2;
+        if (l < len && a[l] > a[largest]) largest = l;
+        if (r < len && a[r] > a[largest]) largest = r;
+        if (largest !== i) {
+          [a[i], a[largest]] = [a[largest], a[i]];
+          record(steps, a, [i, largest], [], "heapify", "heapify");
+          heapify(len, largest);
+        }
+      }
+      for (let i = Math.floor(n / 2) - 1; i >= 0; i--) heapify(n, i);
+      for (let end = n - 1; end > 0; end--) {
+        [a[0], a[end]] = [a[end], a[0]];
+        const sorted = Array.from({ length: n - end }, (_, k) => n - k - 1);
+        record(steps, a, [0, end], [], "extract max", "extract", sorted);
+        heapify(end, 0);
+      }
+      record(steps, a, [], [], "done", "extract", Array.from(a.keys()));
+      return steps;
+    }
+
+    function countingSortSteps(arr) {
+      const steps = [];
+      const a = [...arr];
+      record(steps, a, [], [], "start", "count");
+      const maxVal = Math.max(...a);
+      const count = Array(maxVal + 1).fill(0);
+      for (let i = 0; i < a.length; i++) {
+        count[a[i]]++;
+        record(steps, a, [i], [], "count", "count");
+      }
+      for (let i = 1; i < count.length; i++) count[i] += count[i - 1];
+      const output = Array(a.length).fill(0);
+      for (let i = a.length - 1; i >= 0; i--) {
+        const val = a[i];
+        const pos = --count[val];
+        output[pos] = val;
+        const arrView = output.map(v => v || 0);
+        record(steps, arrView, [pos], [], "place", "place");
+      }
+      record(steps, output, [], [], "done", "place", Array.from(output.keys()));
+      return steps;
+    }
+
+    function radixSortSteps(arr) {
+      const steps = [];
+      let a = [...arr];
+      record(steps, a, [], [], "start", "digit");
+      const maxVal = Math.max(...a);
+      let exp = 1;
+      while (Math.floor(maxVal / exp) > 0) {
+        const buckets = Array.from({ length: 10 }, () => []);
+        for (let i = 0; i < a.length; i++) {
+          const digit = Math.floor(a[i] / exp) % 10;
+          buckets[digit].push(a[i]);
+          record(steps, a, [i], [], `digit ${digit}`, "bucket");
+        }
+        a = buckets.flat();
+        record(steps, a, [], [], "collect", "collect");
+        exp *= 10;
+      }
+      record(steps, a, [], [], "done", "collect", Array.from(a.keys()));
+      return steps;
+    }
+
+    function bucketSortSteps(arr) {
+      const steps = [];
+      const a = [...arr];
+      record(steps, a, [], [], "start", "spread");
+      const bucketCount = Math.max(4, Math.floor(Math.sqrt(a.length)));
+      const maxVal = Math.max(...a);
+      const minVal = Math.min(...a);
+      const range = maxVal - minVal + 1;
+      const buckets = Array.from({ length: bucketCount }, () => []);
+      a.forEach((v, idx) => {
+        const b = Math.min(bucketCount - 1, Math.floor(((v - minVal) / range) * bucketCount));
+        buckets[b].push(v);
+        record(steps, a, [idx], [], `bucket ${b}`, "spread");
+      });
+      let output = [];
+      buckets.forEach((b, bi) => {
+        b.sort((x, y) => x - y);
+        output = output.concat(b);
+        record(steps, output, [], [], `merge bucket ${bi}`, "concat");
+      });
+      record(steps, output, [], [], "done", "concat", Array.from(output.keys()));
+      return steps;
+    }
+
+    function timSortSteps(arr) {
+      const steps = [];
+      const a = [...arr];
+      record(steps, a, [], [], "start", "runs");
+      const MIN_RUN = 4;
+      function insertionRun(left, right) {
+        for (let i = left + 1; i <= right; i++) {
+          const key = a[i];
+          let j = i - 1;
+          while (j >= left && a[j] > key) {
+            a[j + 1] = a[j];
+            record(steps, a, [j + 1], [i], "run shift", "run-sort");
+            j--;
+          }
+          a[j + 1] = key;
+          record(steps, a, [j + 1], [i], "run insert", "run-sort");
+        }
+      }
+      for (let start = 0; start < a.length; start += MIN_RUN) {
+        const end = Math.min(start + MIN_RUN - 1, a.length - 1);
+        insertionRun(start, end);
+      }
+      function merge(left, mid, right) {
+        const leftArr = a.slice(left, mid + 1);
+        const rightArr = a.slice(mid + 1, right + 1);
+        let i = 0, j = 0, k = left;
+        while (i < leftArr.length || j < rightArr.length) {
+          const lv = i < leftArr.length ? leftArr[i] : Infinity;
+          const rv = j < rightArr.length ? rightArr[j] : Infinity;
+          if (lv <= rv) {
+            a[k] = lv; i++;
+          } else {
+            a[k] = rv; j++;
+          }
+          record(steps, a, [k], [], "merge run", "merge");
+          k++;
+        }
+      }
+      for (let size = MIN_RUN; size < a.length; size *= 2) {
+        for (let left = 0; left < a.length; left += 2 * size) {
+          const mid = Math.min(left + size - 1, a.length - 1);
+          const right = Math.min(left + 2 * size - 1, a.length - 1);
+          if (mid < right) merge(left, mid, right);
+        }
+      }
+      record(steps, a, [], [], "done", "merge", Array.from(a.keys()));
+      return steps;
+    }
+
+    // initialize
+    populateAlgorithms();
+    prepareRun();
+  </script>
+</body>
+</html>
