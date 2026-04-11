@@ -12,4 +12,4 @@ A lightweight sorting algorithm visualizer that animates how common sorts rearra
 - Adjustable array size and speed.
 
 ## Run It
-Open `sorting-visualizer.html` in a browser.
+https://jameelsi.github.io/sorts-in-motion/
